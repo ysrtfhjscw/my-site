@@ -1,4 +1,15 @@
-export const courses = [
+import { useState, useEffect } from 'react';
+
+interface Course {
+  id: string;
+  title: string;
+  description: string;
+  content: string;
+  skills: string[];
+  outcomes: string[];
+}
+
+const initialCourses: Course[] = [
   {
     id: "python-basic",
     title: "Python基础",
@@ -62,3 +73,45 @@ export const courses = [
     ]
   }
 ];
+
+export const useCourses = () => {
+  const [courses, setCourses] = useState<Course[]>(() => {
+    try {
+      const saved = localStorage.getItem('courses');
+      return saved ? JSON.parse(saved) : initialCourses;
+    } catch (error) {
+      console.error('Failed to load courses from localStorage:', error);
+      return initialCourses;
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem('courses', JSON.stringify(courses));
+  }, [courses]);
+
+  const updateCourse = (id: string, updatedCourse: Partial<Course>) => {
+    setCourses(prev => prev.map(course => 
+      course.id === id ? { ...course, ...updatedCourse } : course
+    ));
+  };
+
+  const addCourse = (course: Course) => {
+    setCourses(prev => [...prev, course]);
+  };
+
+  const deleteCourse = (id: string) => {
+    setCourses(prev => prev.filter(course => course.id !== id));
+  };
+
+  const resetToDefault = () => {
+    setCourses(initialCourses);
+  };
+
+  return {
+    courses,
+    updateCourse,
+    addCourse,
+    deleteCourse,
+    resetToDefault
+  };
+};
